@@ -24,7 +24,7 @@ var CLI struct {
 	Dir       string `help:"Path to directory to save images." type:"path"`
 	Workers   int    `help:"Number of workers." default:"5"`
 	Timeout   string `help:"Number of workers." default:"10s"`
-	Reload    bool   `help:"Skip downloaded images or not."`
+	Reload    bool   `help:"Force download image if it exists."`
 	Resize    string `help:"Resize image before saving."`
 	URLField  string `help:"Name of field of URL in CSV file."`
 	FileField string `help:"Name of field of the name of file in CSV file."`
