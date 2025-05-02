@@ -21,7 +21,7 @@ jobs:
                   go-version: "1.22"
 
             - name: Build
-              run: go build -v ./...
+              run: go build -v ./cmd/idl.go
 
             - name: Test
               run: go test -v ./...
