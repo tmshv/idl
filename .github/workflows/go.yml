@@ -30,3 +30,10 @@ jobs:
 
             - name: Test
               run: go test -v ./...
+
+            - name: golangci-lint
+              uses: golangci/golangci-lint-action@v6
+              with:
+                  version: v1.62
+              env:
+                  TZ: "UTC"
