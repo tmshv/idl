@@ -1,142 +1,83 @@
 package main
 
 import (
-	"encoding/csv"
-	"flag"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"path/filepath"
-	"time"
+	"path"
+	"runtime"
+
+	"github.com/h2non/bimg"
+	"github.com/tmshv/idl/internal/config"
+	"github.com/tmshv/idl/internal/csv"
+	"github.com/tmshv/idl/internal/dl"
+	"github.com/tmshv/idl/internal/preprocess"
+	"github.com/tmshv/idl/internal/preprocess/resize"
 )
 
-var (
-	source    string
-	dest      string
-	workers   int
-	skip      int
-	limit     int
-	sample    int
-	reload    bool
-	timeout   time.Duration
-	urlField  string
-	fileField string
-)
-
-func init() {
-	flag.StringVar(&source, "i", "", "path to file with urls")
-	flag.StringVar(&dest, "o", ".", "path to output folder")
-	flag.IntVar(&workers, "workers", 5, "number of workers")
-	flag.IntVar(&skip, "skip", 0, "pagination skip")
-	flag.IntVar(&limit, "limit", 0, "pagination limit")
-	flag.IntVar(&sample, "sample", 0, "download sample of urls")
-	flag.BoolVar(&reload, "reload", false, "skip loaded file or not")
-	flag.DurationVar(&timeout, "timeout", 10*time.Second, "http request timeout")
-	flag.StringVar(&urlField, "url-field", "url", "name of field of url in csv file")
-	flag.StringVar(&fileField, "file-field", "file", "name of field of file in csv file")
-}
-
-func download(url string, targetPath string, client *http.Client) error {
-	req, _ := http.NewRequest("GET", url, nil)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	outFile, err := os.Create(targetPath)
-	if err != nil {
-		return err
-	}
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, resp.Body)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func worker(id int, jobs <-chan []string, done chan<- bool, client *http.Client) {
-	for job := range jobs {
-		url := job[0]
-		targetFile := job[1]
-		targetPath := filepath.Join(dest, targetFile)
-
-		// Optionally, check if the file exists to skip download
-		if reload {
-			if _, err := os.Stat(targetPath); err == nil {
-				fmt.Printf("Skipping existing file: %s\n", targetFile)
-				done <- true
-				continue
-			}
-		}
-
-		err := download(url, targetPath, client)
-		if err != nil {
-			fmt.Printf("Failed to download %s: %v\n", url, err)
-		} else {
-			fmt.Printf("Downloaded %s\n", url)
-		}
-
-		done <- true
-	}
+type image struct {
+	file string
+	data []byte
 }
 
 func main() {
-	flag.Parse()
-
-	file, err := os.Open(source)
+	cfg, err := config.Get()
 	if err != nil {
-		fmt.Printf("Error opening source file: %v\n", err)
-		return
+		panic(err)
 	}
-	defer file.Close()
+	fmt.Printf("%v\n", cfg)
 
-	csvReader := csv.NewReader(file)
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		fmt.Printf("Error reading CSV file: %v\n", err)
-		return
-	}
+	cpu := runtime.NumCPU()
+	fmt.Printf("Number of CPUs: %d\n", cpu)
 
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
-	jobs := make(chan []string, workers)
-	done := make(chan bool, workers)
-
-	for w := 1; w <= workers; w++ {
-		go worker(w, jobs, done, client)
-	}
-
-	count := 0
-	for _, record := range records[skip:] {
-		if limit > 0 && count >= limit {
-			break
+	recordCh := make(chan csv.Record, cpu)
+	go (func() {
+		reader := csv.New(cfg.Fields.URL, cfg.Fields.File)
+		err := reader.Read(cfg.Input, recordCh)
+		if err != nil {
+			fmt.Printf("Failed to read CSV file: %v\n", err)
 		}
-		// Assuming the CSV has urlField and fileField in the correct positions
-		url := record[0]        // Simplification for demonstration purposes
-		targetFile := record[1] // Simplification for demonstration purposes
-		jobs <- []string{url, targetFile}
-		count++
-	}
-	close(jobs)
+	})()
 
-	for a := 1; a <= count; a++ {
-		<-done
+	dlCh := make(chan image, cfg.Workers)
+	go func() {
+		defer close(dlCh)
+		dl := dl.New(cfg.Timeout, 1)
+		for rec := range recordCh {
+			body, err := dl.Download(rec.URL)
+			if err != nil {
+				fmt.Printf("Failed to download image: %v\n", err)
+				continue
+			}
+			fmt.Printf("Record: %v\n", rec)
+			dlCh <- image{file: rec.File, data: body}
+		}
+	}()
+
+	imgCh := make(chan image, cpu)
+	go func() {
+		defer close(imgCh)
+
+		preps := []preprocess.Preprocessor{
+			resize.New(cfg.Resize[0], cfg.Resize[1]),
+		}
+
+		for i := range dlCh {
+			for _, prep := range preps {
+				i.data, err = prep.Run(i.data)
+				if err != nil {
+					fmt.Printf("Failed to preprocess image: %v\n", err)
+					return
+				}
+			}
+			imgCh <- i
+		}
+	}()
+
+	for i := range imgCh {
+		file := path.Join(cfg.Dir, i.file)
+		err := bimg.Write(file, i.data)
+		if err != nil {
+			fmt.Printf("Failed to write image: %v\n", err)
+			continue
+		}
 	}
 }
-
-// This code is a minimalistic translation intended to replicate the core functionalities without external libraries for CSV sampling or progress bars.
-// The Go version sets up a pool of worker goroutines to download files concurrently, similar to the asyncio tasks in the original Python script.
-// It assumes the CSV is simple, with specific columns (fields) for URLs and filenames.
-//
-// Notably, this version simplifies CSV parsing and omits complex pandas functionalities,
-// such as sampling or selective pagination, which would require additional logic in Go.
-// Error management is basic, focusing on demonstrating the concurrency model for downloading files.
-// To fully match the Python script's capabilities, further refinements and external libraries (for tasks like random sampling) might be considered.
