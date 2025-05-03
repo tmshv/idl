@@ -84,7 +84,6 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 				for rec := range recordCh {
 					file := path.Join(cfg.Dir, rec.File)
 					if !cfg.Reload && utils.FileExists(file) {
-						fmt.Printf("Skip: %s\n", file)
 						continue
 					}
 
