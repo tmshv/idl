@@ -3,10 +3,10 @@ package idl
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"sync"
 
-	"github.com/h2non/bimg"
 	"github.com/tmshv/idl/internal/config"
 	"github.com/tmshv/idl/internal/csv"
 	"github.com/tmshv/idl/internal/dl"
@@ -93,7 +93,13 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	}()
 
 	for i := range imgCh {
-		err := bimg.Write(i.file, i.data)
+		f, err := os.Open(i.file)
+		if err != nil {
+			fmt.Printf("Failed to open file: %v\n", err)
+			continue
+		}
+		defer f.Close()
+		_, err = f.Write(i.data)
 		if err != nil {
 			fmt.Printf("Failed to write image: %v\n", err)
 			continue

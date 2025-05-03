@@ -15,10 +15,7 @@ permissions:
 
 jobs:
     release:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                os: [macos-latest, ubuntu-latest]
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -27,17 +24,8 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5
               with:
-                  go-version: 1.22
-            - uses: gerlero/brew-install@v1
-              if: matrix.os == 'macos-latest'
-              with:
-                  packages: vips
-            - name: Install Libvips for Linux
-              if: matrix.os == 'ubuntu-latest'
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y libvips-dev
-            - name: Run GoReleaser for macOS
+                  go-version: 1.23
+            - name: Run GoReleaser
               uses: goreleaser/goreleaser-action@v6
               with:
                   distribution: goreleaser

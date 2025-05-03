@@ -1,7 +1,9 @@
 package resize
 
 import (
-	"github.com/h2non/bimg"
+	"bytes"
+
+	"github.com/disintegration/imaging"
 )
 
 type resize struct {
@@ -10,13 +12,18 @@ type resize struct {
 }
 
 func (e *resize) Run(input []byte) ([]byte, error) {
-	i := bimg.NewImage(input)
-	newImage, err := i.ResizeAndCrop(e.Width, e.Height)
+	r := bytes.NewReader(input)
+	src, err := imaging.Decode(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return newImage, nil
+	img := imaging.Fill(src, e.Width, e.Height, imaging.Center, imaging.Lanczos)
+
+	w := bytes.Buffer{}
+	imaging.Encode(&w, img, imaging.JPEG)
+
+	return w.Bytes(), nil
 }
 
 func New(width, height int) *resize {

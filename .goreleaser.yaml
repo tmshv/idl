@@ -25,8 +25,8 @@ builds:
       goarch:
           - arm64
           - amd64
-      # env:
-      #     - CGO_ENABLED=1
+      env:
+          - CGO_ENABLED=0
       #     - CC=clang
       # ldflags:
       #     - -linkmode=external
