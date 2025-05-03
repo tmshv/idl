@@ -34,7 +34,7 @@ func (dl *Downloader) dl(url string) ([]byte, error) {
 		return nil, err
 	}
 	if res.StatusCode != http.StatusOK {
-		return nil, errors.New("Not 200 OK")
+		return nil, errors.New("not 200 OK")
 	}
 
 	defer res.Body.Close()
