@@ -26,30 +26,6 @@ builds:
       env:
           - CGO_ENABLED=1
           - CC=clang
-    # - id: linux-amd64
-    #   main: ./cmd/idl
-    #   binary: idl
-    #   goos:
-    #       - linux
-    #   goarch:
-    #       - amd64
-    #   env:
-    #       - CGO_ENABLED=1
-    #       - CC=gcc
-    # flags:
-    #     - -mod=readonly
-    # ldflags:
-    #     - -s -w -X main.version={{.Version}}
-    # - env:
-    #       - CGO_ENABLED=1
-    #   main: ./cmd/idl
-    #   goos:
-    #       - linux
-    #       # - windows
-    #       - darwin
-    #   goarch:
-    #       - amd64
-    #       - arm64
 
 checksum:
     # You can change the name of the checksums file.
