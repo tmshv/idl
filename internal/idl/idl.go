@@ -28,7 +28,10 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	recordCh := make(chan csv.Record, idl.cpu)
 	go (func() {
 		reader := csv.New(cfg.Fields.URL, cfg.Fields.File)
-		err := reader.Read(cfg.Input, recordCh)
+		err := reader.Read(ctx, cfg.Input, recordCh)
+		if errors.Is(err, context.Canceled) {
+			return
+		}
 		if err != nil {
 			fmt.Printf("Failed to read CSV file: %v\n", err)
 		}

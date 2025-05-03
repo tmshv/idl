@@ -1,6 +1,7 @@
 package csv
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -49,7 +50,7 @@ func (x *CSV) makeRecord(row []string) Record {
 	}
 }
 
-func (x *CSV) Read(path string, ch chan<- Record) error {
+func (x *CSV) Read(ctx context.Context, path string, ch chan<- Record) error {
 	defer close(ch)
 
 	file, err := os.Open(path)
@@ -76,26 +77,26 @@ func (x *CSV) Read(path string, ch chan<- Record) error {
 		return err
 	}
 
-	var readError error
-
 	for {
-		row, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			readError = err
-			break
-		}
-		if len(row) == 0 {
-			continue
-		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			row, err := reader.Read()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+			if len(row) == 0 {
+				continue
+			}
 
-		rec := x.makeRecord(row)
-		ch <- rec
+			rec := x.makeRecord(row)
+			ch <- rec
+		}
 	}
-
-	return readError
 }
 
 func New(url, file string) *CSV {
