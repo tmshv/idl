@@ -45,7 +45,7 @@ var CLI struct {
 
 func Get() (Config, error) {
 	kong.Parse(&CLI)
-	resize, err := ParseResize(CLI.Resize)
+	resize, err := ParseResize(CLI.Resize, [2]int{0, 0}, [2]int{10000, 10000})
 	if err != nil {
 		return Config{}, err
 	}
