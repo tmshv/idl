@@ -59,7 +59,7 @@ func (idl *IDL) count(ctx context.Context, cfg config.Config) int64 {
 func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	total := idl.count(ctx, cfg)
 
-	recordCh := make(chan csv.Record, idl.cpu)
+	recordCh := make(chan csv.Record)
 	go (func() {
 		reader := csv.New(cfg.Fields.URL, cfg.Fields.File)
 		err := reader.Read(ctx, cfg.Input, recordCh)
