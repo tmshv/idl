@@ -25,6 +25,9 @@ builds:
       env:
           - CGO_ENABLED=1
           - CC=gcc
+      ldflags:
+          - -linkmode=external
+          - -extldflags=-static
 
 checksum:
     # You can change the name of the checksums file.
