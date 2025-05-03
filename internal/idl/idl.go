@@ -139,7 +139,11 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 				fmt.Printf("Failed to save file: %v\n", err)
 				return
 			}
-			bar.Add(1)
+			err = bar.Add(1)
+			if err != nil {
+				fmt.Printf("Failed update progressbar: %v\n", err)
+				return
+			}
 		}()
 	}
 	wg.Wait()
