@@ -33,7 +33,7 @@ checksum:
     # Default: '{{ .ProjectName }}_{{ .Version }}_checksums.txt', or,
     #   when split is set: '{{ .ArtifactName }}.{{ .Algorithm }}'.
     # Templates: allowed.
-    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}-checksums.txt"
+    name_template: "{{ .ProjectName }}-{{ .Version }}-darwin-checksums.txt"
 
 archives:
     - formats: [tar.gz]
