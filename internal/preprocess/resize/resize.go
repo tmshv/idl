@@ -21,7 +21,10 @@ func (e *resize) Run(input []byte) ([]byte, error) {
 	img := imaging.Fill(src, e.Width, e.Height, imaging.Center, imaging.Lanczos)
 
 	w := bytes.Buffer{}
-	imaging.Encode(&w, img, imaging.JPEG)
+	err = imaging.Encode(&w, img, imaging.JPEG)
+	if err != nil {
+		return nil, err
+	}
 
 	return w.Bytes(), nil
 }

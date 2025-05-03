@@ -56,7 +56,11 @@ func (x *CSV) Read(path string, ch chan<- Record) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	reader := csv.NewReader(file)
 

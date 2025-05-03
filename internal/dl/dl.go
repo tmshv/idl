@@ -37,7 +37,11 @@ func (dl *Downloader) dl(url string) ([]byte, error) {
 		return nil, errors.New("not 200 OK")
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		if closeErr := res.Body.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
