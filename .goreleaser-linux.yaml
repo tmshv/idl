@@ -26,6 +26,14 @@ builds:
           - CGO_ENABLED=1
           - CC=gcc
 
+checksum:
+    # You can change the name of the checksums file.
+    #
+    # Default: '{{ .ProjectName }}_{{ .Version }}_checksums.txt', or,
+    #   when split is set: '{{ .ArtifactName }}.{{ .Algorithm }}'.
+    # Templates: allowed.
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}-checksums.txt"
+
 archives:
     - formats: [tar.gz]
       # this name template makes the OS and Arch compatible with the results of `uname`.
