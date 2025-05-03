@@ -14,8 +14,11 @@ permissions:
     # id-token: write
 
 jobs:
-    release-macos:
-        runs-on: macos-latest
+    release:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest]
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -24,39 +27,21 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5
               with:
-                  go-version: stable
+                  go-version: 1.22
             - uses: gerlero/brew-install@v1
+              if: matrix.os == 'macos-latest'
               with:
                   packages: vips
+            - name: Install Libvips for Linux
+              if: matrix.os == 'ubuntu-latest'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libvips-dev
             - name: Run GoReleaser for macOS
               uses: goreleaser/goreleaser-action@v6
               with:
                   distribution: goreleaser
                   version: "~> v2"
                   args: release --clean
-              env:
-                  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-
-    release-linux:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: stable
-            - name: Install Libvips for Linux
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y libvips-dev
-            - name: Run GoReleaser for Linux
-              uses: goreleaser/goreleaser-action@v6
-              with:
-                  distribution: goreleaser
-                  version: "~> v2"
-                  args: release -f .goreleaser-linux.yaml --clean
               env:
                   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}

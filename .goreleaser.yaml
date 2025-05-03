@@ -16,24 +16,28 @@ before:
         - go generate ./...
 
 builds:
-    - id: darwin-arm64
+    - id: build-idl
       main: ./cmd/idl
       binary: idl
       goos:
           - darwin
+          - linux
       goarch:
           - arm64
-      env:
-          - CGO_ENABLED=1
-          - CC=clang
+          - amd64
+      # env:
+      #     - CGO_ENABLED=1
+      #     - CC=clang
+      # ldflags:
+      #     - -linkmode=external
+      #     - -extldflags=-static
 
-checksum:
-    # You can change the name of the checksums file.
-    #
-    # Default: '{{ .ProjectName }}_{{ .Version }}_checksums.txt', or,
-    #   when split is set: '{{ .ArtifactName }}.{{ .Algorithm }}'.
-    # Templates: allowed.
-    name_template: "{{ .ProjectName }}-{{ .Version }}-darwin-checksums.txt"
+# checksum:
+#     # You can change the name of the checksums file.
+#     # Default: '{{ .ProjectName }}_{{ .Version }}_checksums.txt', or,
+#     #   when split is set: '{{ .ArtifactName }}.{{ .Algorithm }}'.
+#     # Templates: allowed.
+#     name_template: "{{ .ProjectName }}-{{ .Version }}-darwin-checksums.txt"
 
 archives:
     - formats: [tar.gz]
