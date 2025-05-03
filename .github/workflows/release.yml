@@ -14,7 +14,7 @@ permissions:
     # id-token: write
 
 jobs:
-    goreleaser-macos:
+    release-macos:
         runs-on: macos-latest
         steps:
             - name: Checkout
@@ -28,15 +28,35 @@ jobs:
             - uses: gerlero/brew-install@v1
               with:
                   packages: vips
-            # More assembly might be required: Docker logins, GPG, etc.
-            # It all depends on your needs.
-            - name: Run GoReleaser
+            - name: Run GoReleaser for macOS
               uses: goreleaser/goreleaser-action@v6
               with:
-                  # either 'goreleaser' (default) or 'goreleaser-pro'
                   distribution: goreleaser
-                  # 'latest', 'nightly', or a semver
                   version: "~> v2"
                   args: release --clean
+              env:
+                  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+    release-linux:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: stable
+            - name: Install Libvips for Linux
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libvips-dev
+            - name: Run GoReleaser for Linux
+              uses: goreleaser/goreleaser-action@v6
+              with:
+                  distribution: goreleaser
+                  version: "~> v2"
+                  args: release -f .goreleaser-linux.yaml --clean
               env:
                   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
