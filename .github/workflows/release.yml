@@ -14,8 +14,8 @@ permissions:
     # id-token: write
 
 jobs:
-    goreleaser:
-        runs-on: ubuntu-latest
+    goreleaser-macos:
+        runs-on: macos-latest
         steps:
             - name: Checkout
               uses: actions/checkout@v4
