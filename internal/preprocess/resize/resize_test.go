@@ -2,9 +2,6 @@ package resize
 
 import (
 	"bytes"
-	"errors"
-	"image"
-	"io"
 	"os"
 	"path"
 	"testing"
@@ -75,9 +72,4 @@ func readImageFile(filename string) []byte {
 		panic(err) // Or handle the error more gracefully in a real test
 	}
 	return f
-}
-
-// Mock imaging.Decode to return an error for testing purposes
-func mockDecode(r io.Reader) (image.Image, error) {
-	return nil, errors.New("mock decode error")
 }
