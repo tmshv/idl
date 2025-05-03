@@ -92,20 +92,20 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 		wg.Wait()
 	}()
 
+	wg := sync.WaitGroup{}
 	for i := range imgCh {
-		f, err := os.Open(i.file)
-		if err != nil {
-			fmt.Printf("Failed to open file: %v\n", err)
-			continue
-		}
-		defer f.Close()
-		_, err = f.Write(i.data)
-		if err != nil {
-			fmt.Printf("Failed to write image: %v\n", err)
-			continue
-		}
-		fmt.Printf("OK: %v\n", i.file)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := os.WriteFile(i.file, i.data, 0644)
+			if err != nil {
+				fmt.Printf("Failed to save file: %v\n", err)
+				return
+			}
+			fmt.Printf("OK: %v\n", i.file)
+		}()
 	}
+	wg.Wait()
 
 	return nil
 }
