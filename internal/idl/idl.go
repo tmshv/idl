@@ -87,14 +87,14 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 			go func() {
 				defer wg.Done()
 
-				dl := dl.New(cfg.Timeout, 1)
+				dl := dl.New(cfg.Timeout, cfg.Retries)
 				for rec := range recordCh {
 					file := path.Join(cfg.Dir, rec.File)
 					if !cfg.Reload && utils.FileExists(file) {
 						continue
 					}
 
-					body, err := dl.Download(rec.URL)
+					body, err := dl.Download(ctx, rec.URL)
 					if err != nil {
 						fmt.Printf("Failed to download: %v\n", err)
 						continue

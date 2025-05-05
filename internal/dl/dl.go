@@ -1,30 +1,30 @@
 package dl
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/cenkalti/backoff/v5"
 )
 
 type Downloader struct {
 	Timeout time.Duration
-	Retries int
+	retries uint
 
 	client *http.Client
 }
 
-func (dl *Downloader) Download(url string) ([]byte, error) {
-	var e error
-	for range dl.Retries {
-		body, err := dl.dl(url)
-		if err != nil {
-			e = err
-			continue
-		}
-		return body, nil
+func (dl *Downloader) Download(ctx context.Context, url string) ([]byte, error) {
+	operation := func() ([]byte, error) {
+		return dl.dl(url)
 	}
-	return nil, e
+	return backoff.Retry(ctx, operation,
+		backoff.WithBackOff(backoff.NewExponentialBackOff()),
+		backoff.WithMaxTries(dl.retries),
+	)
 }
 
 func (dl *Downloader) dl(url string) ([]byte, error) {
@@ -32,6 +32,11 @@ func (dl *Downloader) dl(url string) ([]byte, error) {
 	res, err := dl.client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+	// In case on non-retriable error, return Permanent error to stop retrying.
+	// For this HTTP example, client errors are non-retriable.
+	if res.StatusCode == 404 {
+		return nil, backoff.Permanent(errors.New("not found"))
 	}
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New("not 200 OK")
@@ -50,13 +55,13 @@ func (dl *Downloader) dl(url string) ([]byte, error) {
 	return body, nil
 }
 
-func New(timeout time.Duration, retries int) *Downloader {
+func New(timeout time.Duration, retries uint) *Downloader {
 	client := &http.Client{
 		Timeout: timeout,
 	}
 	return &Downloader{
 		Timeout: timeout,
-		Retries: retries,
+		retries: retries,
 		client:  client,
 	}
 }

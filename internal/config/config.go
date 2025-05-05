@@ -13,6 +13,7 @@ type Config struct {
 	Reload  bool
 	Resize  [2]int
 	Timeout time.Duration
+	Retries uint
 	Fields  struct {
 		URL  string
 		File string
@@ -24,6 +25,7 @@ var CLI struct {
 	Dir       string `help:"Path to directory to save images." type:"path"`
 	Workers   uint   `help:"Number of workers." default:"5"`
 	Timeout   string `help:"Number of workers." default:"10s"`
+	Retries   uint   `help:"Max number of attempts to download." default:"1"`
 	Reload    bool   `help:"Force download image if it exists."`
 	Resize    string `help:"Resize image before saving."`
 	URLField  string `help:"Name of field of URL in CSV file."`
@@ -58,6 +60,7 @@ func Get() (Config, error) {
 		Dir:     CLI.Dir,
 		Workers: CLI.Workers,
 		Timeout: timeout,
+		Retries: CLI.Retries,
 		Reload:  CLI.Reload,
 		Resize:  resize,
 		Fields: struct {
