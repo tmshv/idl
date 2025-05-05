@@ -12,7 +12,9 @@ import (
 	"github.com/tmshv/idl/internal/config"
 	"github.com/tmshv/idl/internal/csv"
 	"github.com/tmshv/idl/internal/dl"
+	"github.com/tmshv/idl/internal/preprocess"
 	"github.com/tmshv/idl/internal/preprocess/compose"
+	"github.com/tmshv/idl/internal/preprocess/empty"
 	"github.com/tmshv/idl/internal/preprocess/resize"
 	"github.com/tmshv/idl/internal/utils"
 )
@@ -105,9 +107,7 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	go func() {
 		defer close(imgCh)
 
-		prep := compose.New(
-			resize.New(cfg.Resize[0], cfg.Resize[1]),
-		)
+		prep := idl.makePreprocessors(&cfg)
 
 		wg := sync.WaitGroup{}
 		for range idl.cpu {
@@ -149,6 +149,16 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	wg.Wait()
 
 	return nil
+}
+
+func (idl *IDL) makePreprocessors(cfg *config.Config) preprocess.Preprocessor {
+	if cfg.Resize == [2]int{0, 0} {
+		fmt.Printf("Image resizing is disabled")
+		return empty.New()
+	}
+	return compose.New(
+		resize.New(cfg.Resize[0], cfg.Resize[1]),
+	)
 }
 
 func New(cpu int) *IDL {
