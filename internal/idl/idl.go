@@ -81,13 +81,13 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	dlCh := make(chan image, cfg.Workers)
 	go func() {
 		defer close(dlCh)
-		dl := dl.New(cfg.Timeout, 1)
 		wg := sync.WaitGroup{}
 		for range cfg.Workers {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
 
+				dl := dl.New(cfg.Timeout, 1)
 				for rec := range recordCh {
 					file := path.Join(cfg.Dir, rec.File)
 					if !cfg.Reload && utils.FileExists(file) {
