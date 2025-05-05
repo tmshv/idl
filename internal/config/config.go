@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Input   string
 	Dir     string
-	Workers int
+	Workers uint
 	Reload  bool
 	Resize  [2]int
 	Timeout time.Duration
@@ -22,7 +22,7 @@ type Config struct {
 var CLI struct {
 	Input     string `help:"Path to CSV file." type:"path"`
 	Dir       string `help:"Path to directory to save images." type:"path"`
-	Workers   int    `help:"Number of workers." default:"5"`
+	Workers   uint   `help:"Number of workers." default:"5"`
 	Timeout   string `help:"Number of workers." default:"10s"`
 	Reload    bool   `help:"Force download image if it exists."`
 	Resize    string `help:"Resize image before saving."`
