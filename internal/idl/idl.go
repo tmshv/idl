@@ -61,6 +61,11 @@ func (idl *IDL) count(ctx context.Context, cfg config.Config) int64 {
 func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 	total := idl.count(ctx, cfg)
 
+	err := os.MkdirAll(cfg.Dir, os.ModePerm)
+	if err != nil {
+		fmt.Printf("Failed to make dir: %v\n", err)
+	}
+
 	recordCh := make(chan csv.Record)
 	go (func() {
 		reader := csv.New(cfg.Fields.URL, cfg.Fields.File)
