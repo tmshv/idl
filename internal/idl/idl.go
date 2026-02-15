@@ -123,7 +123,7 @@ func (idl *IDL) Run(ctx context.Context, cfg config.Config) error {
 					data, err := prep.Run(i.data)
 					if err != nil {
 						fmt.Printf("Failed to preprocess image: %v\n", err)
-						return
+						continue
 					}
 					i.data = data
 					imgCh <- i
