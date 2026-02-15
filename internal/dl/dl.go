@@ -28,11 +28,16 @@ func (dl *Downloader) Download(ctx context.Context, url string) ([]byte, error) 
 }
 
 func (dl *Downloader) dl(url string) ([]byte, error) {
-	req, _ := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, backoff.Permanent(err)
+	}
 	res, err := dl.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = res.Body.Close() }()
+
 	// In case on non-retriable error, return Permanent error to stop retrying.
 	// For this HTTP example, client errors are non-retriable.
 	if res.StatusCode == 404 {
@@ -42,11 +47,6 @@ func (dl *Downloader) dl(url string) ([]byte, error) {
 		return nil, errors.New("not 200 OK")
 	}
 
-	defer func() {
-		if closeErr := res.Body.Close(); closeErr != nil {
-			err = closeErr
-		}
-	}()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err

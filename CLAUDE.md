@@ -41,3 +41,9 @@ All stages communicate via Go channels and respect context cancellation for grac
 ## Go Version
 
 Go 1.24.0 (see `go.mod`)
+
+## Plans
+
+Before starting a task, check .claude/plans/ for any existing plan related to the work.
+When creating a new plan, save it to .claude/plans/YYYYMMDD-<what-to-do>.md with a descriptive filename.
+Use `feature` prefix for filename. For example: .claude/plans/20260214-feature-add-something-new.md

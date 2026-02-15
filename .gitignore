@@ -31,3 +31,6 @@ saved
 dist/
 
 .claude
+
+# ralphex progress logs
+.ralphex/progress/

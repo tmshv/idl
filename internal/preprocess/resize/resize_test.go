@@ -65,6 +65,28 @@ func TestResize_Run(t *testing.T) {
 	}
 }
 
+func TestResize_OutputDimensions(t *testing.T) {
+	input := readImageFile("example.jpg")
+	r := New(50, 50)
+	output, err := r.Run(input)
+	if err != nil {
+		t.Fatalf("Run() unexpected error: %v", err)
+	}
+
+	img, err := imaging.Decode(bytes.NewReader(output))
+	if err != nil {
+		t.Fatalf("failed to decode output image: %v", err)
+	}
+
+	bounds := img.Bounds()
+	if bounds.Dx() != 50 {
+		t.Errorf("expected width 50, got %d", bounds.Dx())
+	}
+	if bounds.Dy() != 50 {
+		t.Errorf("expected height 50, got %d", bounds.Dy())
+	}
+}
+
 func readImageFile(filename string) []byte {
 	path := path.Join("../../../testdata", filename)
 	f, err := os.ReadFile(path)
